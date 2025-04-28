@@ -1,0 +1,233 @@
+---
+- hosts: all
+  name: Prepares a SELinux workshop
+  become: yes
+  remote_user: root
+  tasks:
+
+  - name: Update System to latest
+    ansible.builtin.package:
+      name: '*'
+      state: latest
+
+  - name: install packages
+    ansible.builtin.package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      #      - libselinux-python
+      #      - policycoreutils-python
+      - policycoreutils-devel
+      - policycoreutils-newrole
+      - selinux-policy-doc
+      - setroubleshoot-server
+      - setools-console
+      - httpd
+      - php
+      - nfs-utils
+      - samba
+      - samba-client
+      - tomcat
+      - make
+      - gcc-c++
+      - libcurl-devel.x86_64
+      - rpm-build
+      - firewalld
+      - audit
+      - rhel-system-roles
+      - python3-libselinux
+      - python3-policycoreutils
+      - python3-libsemanage
+      - policycoreutils-python-utils  
+
+  - name: Create a Samba Config
+    ansible.builtin.copy:
+      src: files/smb.conf
+      dest: /etc/samba/smb.conf
+
+  - name: Create a NFS config
+    ansible.builtin.copy:
+      src: files/exports
+      dest: /etc/exports
+
+  - name: Enable NFS v4.2
+    ansible.builtin.lineinfile:
+      path: /etc/sysconfig/nfs
+      state: present
+      regexp: '^RPCNFSDARGS='
+      line: RPCNFSDARGS="-V 4.2"
+
+  - name: create the SMB Share
+    ansible.builtin.file:
+      path: /share
+      state: directory
+
+  - name: create the NFS-Share
+    ansible.builtin.file:
+      path: /nfsshare
+      state: directory
+
+  - name: Add a "tester" user with password "tester"
+    ansible.builtin.user:
+      name: tester
+      shell: /bin/bash
+      password: tester
+  
+  - name: copy mail.php
+    ansible.builtin.copy:
+      src: files/mail.php
+      dest: /var/www/html/mail.php
+
+  - name: copy the CGI script
+    ansible.builtin.copy:
+      src: files/shadow.sh
+      dest: /var/www/cgi-bin/shadow.sh
+      mode: 0755
+
+  - name: Shoot your self in the foot set mode 666 for /etc/shadow
+    ansible.builtin.file:
+      path: /etc/shadow
+      mode: 0666
+
+  - name: Ensure SELinux is in enforcing mode
+    vars:
+      selinux_policy: targeted
+      selinux_state: enforcing
+    include_role:
+      name: redhat.rhel_system_roles.selinux
+
+  - name: Add a SMB user "tester" with the password "tester"
+    ansible.builtin.shell: printf "tester\ntester\n" | smbpasswd -a -s tester
+
+  - name: Ensure HTTPd is enabled and running
+    ansible.builtin.service:
+      name: httpd
+      state: started
+      enabled: yes
+
+  - name: Ensure Samba is enabled and running
+    ansible.builtin.service:
+      name: smb
+      state: started
+      enabled: yes
+
+  - name: Ensure NFS is enabled and running
+    ansible.builtin.service:
+      name: nfs
+      state: started
+      enabled: yes
+    ignore_errors: yes
+
+  - name: Ensure Firewalld is enabled and running
+    ansible.builtin.service:
+      name: firewalld
+      state: started
+      enabled: yes
+
+  - name: Ensure tomcat is enabled and running
+    ansible.builtin.service:
+      name: tomcat
+      state: started
+      enabled: yes
+
+  - name: Ensure auditd is enabled and running
+    ansible.builtin.service:
+      name: auditd
+      state: started
+      enabled: yes
+
+  - name: Open firewalld on port 8080/tcp
+    ansible.builtin.firewalld:
+      port: 8080/tcp
+      state: enabled
+      permanent: true
+
+  - name: Open firewalld for our services
+    ansible.builtin.firewalld:
+      service: "{{ item }}"
+      state: enabled
+      permanent: true
+    with_items:
+      - nfs
+      - samba
+      - http
+
+  - name: Ensure SELinux test app is on the system
+    ansible.builtin.copy:
+      src: files/sample.war
+      dest: /var/lib/tomcat/webapps/sample.war
+      mode: 0644
+
+  - name: Create test_www dir with webpages
+    ansible.builtin.file:
+      path: /var/test_www/html
+      state: directory
+      owner: apache
+      group: apache
+      mode: 0755
+
+  - name: Create test_www dir with webpages
+    ansible.builtin.file:
+      path: /var/test_www/html/index.html
+      state: touch
+      owner: apache
+      group: apache
+      mode: 0644
+
+  - name: Use custom port for apache binding
+    ansible.builtin.lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^Listen '
+      line: 'Listen 3131'
+
+  - name: Use custom port for apache binding
+    ansible.builtin.lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: 'DocumentRoot "/var/www/html"'
+      line: 'DocumentRoot "/var/test_www/html"'
+
+  - name: Use custom DocumentRoot for Apache
+    ansible.builtin.lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '<Directory "/var/www/html">'
+      line: '<Directory "/var/test_www/html">'
+
+  - name: Create dir with working files
+    ansible.builtin.file:
+      path: /root/selinuxlab
+      state: directory
+      mode: 0755
+
+  - name: Ensure SELinux test app source is on the system
+    ansible.builtin.copy:
+      src: files/testapp.c
+      dest: /root/selinuxlab
+      mode: 0755
+
+  - name: Ensure Makefile for the test app is copied to the system
+    ansible.builtin.copy:
+      src: files/Makefile
+      dest: /root/selinuxlab
+      mode: 0755
+
+  - name: Ensure SELinux test app service file is on the system
+    ansible.builtin.copy:
+      src: files/testapp.service
+      dest: /root/selinuxlab/testapp.service
+      mode: 0644
+
+  - name: Compile the testapp
+    ansible.builtin.shell:
+      cmd: "make -f /root/selinuxlab/Makefile"
+      chdir: /root/selinuxlab
+
+  - name: Install the testapp
+    ansible.builtin.shell:
+      cmd: "make install -f /root/selinuxlab/Makefile"
+      chdir: /root/selinuxlab
+
+  - name: Reboot host
+    ansible.builtin.shell: sleep 10 && /sbin/shutdown -r now
+    async: 300
+    poll: 0
+    become: true
