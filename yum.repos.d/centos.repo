@@ -1,0 +1,84 @@
+[baseos]
+name=CentOS Stream $releasever - BaseOS
+baseurl=https://mirror.stream.centos.org/9-stream/BaseOS/$basearch/os/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=1
+
+[baseos-debuginfo]
+name=CentOS Stream $releasever - BaseOS - Debug
+baseurl=https://debuginfo.centos.org/9-stream/BaseOS/$basearch/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[baseos-source]
+name=CentOS Stream $releasever - BaseOS - Source
+baseurl=https://vault.centos.org/9-stream/BaseOS/Source/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[appstream]
+name=CentOS Stream $releasever - AppStream
+baseurl=https://mirror.stream.centos.org/9-stream/AppStream/$basearch/os/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=1
+
+[appstream-debuginfo]
+name=CentOS Stream $releasever - AppStream - Debug
+baseurl=https://debuginfo.centos.org/9-stream/AppStream/$basearch/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[appstream-source]
+name=CentOS Stream $releasever - AppStream - Source
+baseurl=https://vault.centos.org/9-stream/AppStream/Source/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[crb]
+name=CentOS Stream $releasever - CRB
+baseurl=https://mirror.stream.centos.org/9-stream/CRB/$basearch/os/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=1
+
+[crb-debuginfo]
+name=CentOS Stream $releasever - CRB - Debug
+baseurl=https://debuginfo.centos.org/9-stream/CRB/$basearch/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
+[crb-source]
+name=CentOS Stream $releasever - CRB - Source
+baseurl=https://vault.centos.org/9-stream/CRB/Source/
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+enabled=0
+
